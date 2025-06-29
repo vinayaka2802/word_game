@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🍓 Fruit Guessing Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f7f5;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #2b7a78;
+    }
+    .word-display {
+      font-size: 2em;
+      margin: 20px 0;
+      letter-spacing: 10px;
+    }
+    .input-area {
+      margin: 20px 0;
+    }
+    input[type="text"] {
+      font-size: 20px;
+      width: 40px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #3aafa9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2b7a78;
+    }
+    .clues, .status {
+      margin: 15px 0;
+      font-size: 18px;
+    }
+    .game-over {
+      color: red;
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🍇 Fruit Guessing Game</h1>
+
+  <div class="clues" id="clues"></div>
+
+  <div class="word-display" id="wordDisplay"></div>
+
+  <div class="input-area">
+    <input type="text" id="guessInput" maxlength="1" autofocus>
+    <button onclick="handleGuess()">Guess</button>
+  </div>
+
+  <div class="status" id="statusMessage"></div>
+
+  <button onclick="restartGame()">🔁 Restart</button>
+
+  <script>
+    const words = ['apple', 'banana', 'mango', 'strawberry',
+                   'orange', 'grape', 'pineapple', 'apricot',
+                   'lemon', 'coconut', 'watermelon', 'cherry',
+                   'papaya', 'berry', 'peach', 'lychee', 'muskmelon'];
+
+    let word = '';
+    let guessedLetters = new Set();
+    let remainingChances = 0;
+    let wordLetters = new Set();
+
+    function chooseWord() {
+      word = words[Math.floor(Math.random() * words.length)];
+      wordLetters = new Set(word);
+      guessedLetters.clear();
+      remainingChances = word.length + 2;
+    }
+
+    function showClues() {
+      const first = word[0].toUpperCase();
+      const last = word[word.length - 1].toUpperCase();
+      const numVowels = [...word].filter(c => 'aeiou'.includes(c)).length;
+
+      document.getElementById("clues").innerHTML =
+        `Clue 1: ${word.length} letters<br>
+         Clue 2: Starts with '${first}', ends with '${last}'<br>
+         Clue 3: ${numVowels} vowel(s)`;
+    }
+
+    function updateDisplay() {
+      const display = [...word].map(c => guessedLetters.has(c) ? c.toUpperCase() : '_').join(' ');
+      document.getElementById("wordDisplay").innerText = display;
+    }
+
+    function handleGuess() {
+      const input = document.getElementById("guessInput");
+      const guess = input.value.toLowerCase();
+      input.value = '';
+      input.focus();
+
+      if (!guess.match(/^[a-z]$/)) {
+        showStatus("Please enter a valid letter.", "game-over");
+        return;
+      }
+
+      if (guessedLetters.has(guess)) {
+        showStatus("You already guessed that letter.", "game-over");
+        return;
+      }
+
+      guessedLetters.add(guess);
+
+      if (wordLetters.has(guess)) {
+        wordLetters.delete(guess);
+        showStatus("✅ Good guess!", "success");
+      } else {
+        remainingChances--;
+        showStatus(`❌ Wrong guess. ${remainingChances} chances left.`, "game-over");
+      }
+
+      updateDisplay();
+
+      if (wordLetters.size === 0) {
+        showStatus(`🎉 Congratulations! You guessed the word: ${word.toUpperCase()}`, "success");
+        disableInput();
+      } else if (remainingChances === 0) {
+        showStatus(`💀 Game Over! The word was: ${word.toUpperCase()}`, "game-over");
+        disableInput();
+      }
+    }
+
+    function showStatus(message, className) {
+      const status = document.getElementById("statusMessage");
+      status.className = `status ${className}`;
+      status.textContent = message;
+    }
+
+    function disableInput() {
+      document.getElementById("guessInput").disabled = true;
+    }
+
+    function restartGame() {
+      chooseWord();
+      showClues();
+      updateDisplay();
+      document.getElementById("guessInput").disabled = false;
+      document.getElementById("statusMessage").textContent = '';
+      document.getElementById("guessInput").value = '';
+      document.getElementById("guessInput").focus();
+    }
+
+    // Initialize game on page load
+    window.onload = restartGame;
+  </script>
+
+</body>
+</html>
